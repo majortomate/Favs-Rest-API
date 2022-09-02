@@ -17,5 +17,5 @@ const router = Router();
 router.get('/', getAllFavshandler);
 router.get('/:id', getSingleFavsHanlder);
 router.post('/', createFavsHandlder);
-router.delete('/', deleteFavsHanlder);
+router.delete('/:id', deleteFavsHanlder);
 module.exports = router;
