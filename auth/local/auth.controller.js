@@ -21,7 +21,7 @@ const loginUserHandler = async (req, res) => {
 };
 
 const getAllUsersHandler = async (req, res) => {
-  const users = await User.find({});
+  const users = await User.find({}).populate('favs');
 
   if (!users) {
     res.status(404).json('error');
