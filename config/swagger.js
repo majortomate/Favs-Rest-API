@@ -25,7 +25,7 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:8085/',
+        url: `http://localhost:${process.env.PORT}`,
         description: 'Local server',
       },
     ],
