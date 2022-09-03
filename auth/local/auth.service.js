@@ -20,7 +20,7 @@ const verifyToken = async (token) => {
   }
 };
 
-async function isAuthenticated(req, res, next) {
+const isAuthenticated = async (req, res, next) => {
   const authHeader = req.headers?.authorization;
 
   if (!authHeader) {
@@ -44,12 +44,9 @@ async function isAuthenticated(req, res, next) {
     return res.status(404).json({ message: 'User not found' });
   }
 
-  req.user = user;
-  res.json({ success: 'Authorized' });
-
   next();
   return true;
-}
+};
 module.exports = {
   isAuthenticated,
   signToken,
