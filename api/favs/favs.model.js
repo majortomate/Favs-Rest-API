@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 
-const FavsSchema = new mongoose.Schema({
+const FavItemSchema = new mongoose.Schema({
   title: {
     type: String,
     require: true,
-    unique: true,
   },
   description: {
     type: String,
@@ -14,6 +13,15 @@ const FavsSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
+}, { timestamps: true });
+
+const FavListSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    require: true,
+    unique: true,
+  },
+  favItem: [FavItemSchema],
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -21,6 +29,6 @@ const FavsSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-const Favs = mongoose.model('Favs', FavsSchema);
+const Favs = mongoose.model('Favs', FavListSchema);
 
 module.exports = Favs;
