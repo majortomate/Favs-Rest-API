@@ -1,5 +1,9 @@
-const Fav = require('./favs.model');
+/* eslint-disable no-underscore-dangle */
 const User = require('../../auth/local/auth.model');
+const { getSingleUser } = require('../../auth/local/auth.service');
+const {
+  getAllFavs, getSingleFav, createFav, deleteFav,
+} = require('./favs.service');
 
 /**
  * @openapi
@@ -37,12 +41,12 @@ const User = require('../../auth/local/auth.model');
  *         $ref: '#/components/schemas/serverError'
  */
 const getAllFavshandler = async (req, res) => {
-  const favs = await Fav.find({});
+  const favs = await getAllFavs();
 
   if (!favs) {
     res.status(404).json({ failed: 'no favs found' });
   }
-  res.status(200).json(favs);
+  res.status(200).json({ favs, message: 'These are the all Favs' });
 };
 
 /**
@@ -90,10 +94,10 @@ const getSingleFavsHanlder = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const singleFav = await Fav.findById(id);
+    const singleFav = await getSingleFav(id);
 
     if (singleFav) {
-      return res.status(200).json(singleFav);
+      return res.status(200).json({ singleFav, message: 'This is the Single Fav youy requested' });
     }
     return res.status(404).json({ error: 'fav doesnt exist' });
   } catch (error) {
@@ -147,9 +151,8 @@ const getSingleFavsHanlder = async (req, res) => {
  *         $ref: '#/components/schemas/serverError'
  */
 const createFavsHandlder = async (req, res) => {
-  const favsData = req.body;
-  const id = '631249ea701467900ea7433e';
-  const user = await User.findById(id).populate('favs');
+  const { id } = req.user;
+  const user = await getSingleUser(id);
 
   // Check if user exists
   if (!user) {
@@ -158,20 +161,20 @@ const createFavsHandlder = async (req, res) => {
 
   // Check if list name exists
   const userFavs = user.favs.map((fav) => fav.name)
-    .includes(favsData.name);
+    .includes(req.body.name);
 
   if (userFavs) {
     return res.status(400).json({ duplicate: "you can't create a list with the same name" });
   }
 
   try {
-    const favsCreated = await Fav.create(favsData);
+    const favsCreated = await createFav(req.body);
     await User.findByIdAndUpdate(user, {
       $push: { favs: favsCreated },
     });
 
     if (favsCreated) {
-      return res.status(200).json({ created: 'fav successfully created' });
+      return res.status(200).json({ favsCreated, message: 'fav successfully created' });
     }
     return res.status(500).json({ error: 'couldnt create favs' });
   } catch (error) {
@@ -224,10 +227,10 @@ const deleteFavsHanlder = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const FavToDelete = await Fav.findByIdAndRemove(id);
+    const FavToDelete = await deleteFav(id);
 
     if (FavToDelete) {
-      return res.status(200).json({ deleted: FavToDelete });
+      return res.status(200).json({ FavToDelete, message: 'Fav successfully deleted' });
     }
     return res.status(404).json({ error: 'Fav not found' });
   } catch (error) {

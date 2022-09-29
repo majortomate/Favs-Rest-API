@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Favs',
   }],
-}, { timestamps: true });
+}, { timestamps: true, versionKey: false });
 
 const User = mongoose.model('User', UserSchema);
 
