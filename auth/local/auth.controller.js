@@ -1,6 +1,31 @@
 /* eslint-disable no-underscore-dangle */
-const User = require('./auth.model');
-const { signToken } = require('./auth.service');
+const bcrypt = require('bcryptjs');
+const {
+  signToken, getAllUsers, createUser, getSingleUserByQuery,
+} = require('./auth.service');
+
+const registerUserHandler = async (req, res) => {
+  const userData = req.body;
+  const { email, password } = req.body;
+  const userFound = await getSingleUserByQuery({ email });
+
+  if (userFound) {
+    return res.status(404).json({ message: 'User already registered' });
+  }
+
+  const salt = await bcrypt.genSalt();
+  const hash = await bcrypt.hash(password, salt);
+
+  userData.password = hash;
+
+  try {
+    const usertoCreate = await createUser(userData);
+
+    return res.status(201).json(usertoCreate);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 
 const loginUserHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -9,13 +34,13 @@ const loginUserHandler = async (req, res) => {
     res.status(400).json({ failed: 'All fields are required' });
   }
 
-  const user = await User.findOne({ email });
+  const user = await getSingleUserByQuery({ email });
 
   if (!user) {
     return res.status(404).json({ message: 'Wrong credentials' });
   }
-
-  if (user.password !== password) {
+  const matchPassword = await bcrypt.compare(password, user.password);
+  if (!matchPassword) {
     return res.status(404).json({ message: 'Wrong password' });
   }
   const token = signToken({ email: user.email });
@@ -24,7 +49,7 @@ const loginUserHandler = async (req, res) => {
 };
 
 const getAllUsersHandler = async (req, res) => {
-  const users = await User.find({}).populate('favs');
+  const users = await getAllUsers();
 
   if (!users) {
     res.status(404).json('error');
@@ -33,6 +58,7 @@ const getAllUsersHandler = async (req, res) => {
 };
 
 module.exports = {
+  registerUserHandler,
   loginUserHandler,
   getAllUsersHandler,
 };

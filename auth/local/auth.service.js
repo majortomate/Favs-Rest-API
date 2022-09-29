@@ -2,6 +2,11 @@ const jwt = require('jsonwebtoken');
 
 const User = require('./auth.model');
 
+const createUser = (user) => User.create(user);
+const getSingleUser = (id) => User.findById(id).populate('favs');
+const getSingleUserByQuery = (query) => User.findOne(query).populate('favs');
+const getAllUsers = () => User.find({}).populate('favs');
+
 const signToken = (payload) => {
   const token = jwt.sign(
     payload,
@@ -38,11 +43,13 @@ const isAuthenticated = async (req, res, next) => {
 
   // add user to request
   const { email } = decoded;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).populate('favs');
 
   if (!user) {
     return res.status(404).json({ message: 'User not found' });
   }
+
+  req.user = user;
 
   next();
   return true;
@@ -51,4 +58,8 @@ module.exports = {
   isAuthenticated,
   signToken,
   verifyToken,
+  createUser,
+  getSingleUser,
+  getSingleUserByQuery,
+  getAllUsers,
 };
